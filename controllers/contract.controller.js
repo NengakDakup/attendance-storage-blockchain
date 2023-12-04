@@ -1,33 +1,44 @@
-const Web3 = require('web3');
+const { ethers } = require('ethers');
+// ABI of smart contract
+const contractABI = require('../abis/AttendanceStorage.json');
+
 // configure the dotenv for loading variables from the env file
-const dotenv = require("dotenv");
-dotenv.config()
+require("dotenv").config();
 
+// contract details
 const contractAddress = process.env.contractAddress;
-const contractABI = '';
+const privateKey = process.env.privateKey;
+// Ethereum node URL
+const ethereumNodeURL = process.env.blockchainNodeURL;
 
-// Connect to your Ethereum node
-// const web3 = new Web3(process.env.blockchainNodeURL); 
 
 
-// const contract = new web3.eth.Contract(contractABI, contractAddress);
 
 async function storeData(req, res){
-    try {
-        // Assuming the incoming data is in the request body
-        const data = req.body.data; 
+        try {
+                // Connect to an Ethereum node
+                const provider = new ethers.JsonRpcProvider(ethereumNodeURL);
 
-        // Call the smart contract's storeData function
-        const accounts = await web3.eth.getAccounts();
-        await contract.methods.storeData(data).send({
-            from: accounts[0], // Use an appropriate account
-        });
+                // Create a wallet using the private key
+                const wallet = new ethers.Wallet(privateKey, provider);
 
-        res.status(200).json({ success: true, message: 'Data stored successfully' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: 'Failed to store data' });
-    }
+                // Create a contract instance
+                const contract = new ethers.Contract(contractAddress, contractABI, wallet);
+
+                // Build the transaction
+                const transaction = await contract.store(req.body);
+
+                // Send the transaction
+                const response = await wallet.sendTransaction(transaction);
+
+                console.log('Transaction sent:', response.hash);
+        } catch(error){
+                console.error(error);
+                res.status(500).json({success: false, message: error.message})
+        }
+        
+
+   
 
 }
 

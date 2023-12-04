@@ -12,7 +12,7 @@ const port = 3000;
 
 app.use(express.json());
 
-app.post('/storeData', contract.storeData);
+app.post('/storedata', contract.storeData);
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
